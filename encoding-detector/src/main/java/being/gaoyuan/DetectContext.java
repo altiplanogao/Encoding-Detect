@@ -12,12 +12,13 @@ public class DetectContext {
     public static final int CR = '\r';
 
     public final Charset charset;
-    private final Set<Integer> forbidChars;
+    private final Set<Character> forbidChars;
     private int chars = 0;
     private int maxChar = 0;
     private int lfs = 0;
     private int crs = 0;
     private int lastChar = -1;
+    private char brokenChar = 0;
     private boolean broken = false;
 
     private int unixLines = 0;//\n
@@ -31,7 +32,7 @@ public class DetectContext {
     private boolean committed = false;
     private String contentHash = "";
 
-    public DetectContext(Charset charset, Set<Integer> forbidChars) {
+    public DetectContext(Charset charset, Set<Character> forbidChars) {
         this.charset = charset;
         this.forbidChars = forbidChars;
     }
@@ -60,7 +61,8 @@ public class DetectContext {
                 macLines++;
                 break;
             default:
-                if (forbidChars.contains(chr)) {
+                if (forbidChars.contains(ch)) {
+                    brokenChar = ch;
                     broken = true;
                     return;
                 }
@@ -83,6 +85,10 @@ public class DetectContext {
 
     public boolean isBroken() {
         return broken;
+    }
+
+    public char getBrokenChar() {
+        return brokenChar;
     }
 
     public void commit() {

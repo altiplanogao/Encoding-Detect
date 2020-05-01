@@ -10,6 +10,7 @@ public class DetectSummary {
     public int lines = 0;
     public int chars = 0;
     public char maxChar = 0;
+    private Character brokenChar = null;
     public boolean ok = false;
     public String contentHash;
     public List<String> content = new ArrayList<>();
@@ -21,6 +22,7 @@ public class DetectSummary {
         chars = context.getChars();
         maxChar = (char)context.getMaxChar();
         ok = !context.isBroken();
+        brokenChar = ok ? null : context.getBrokenChar();
         contentHash = context.getContentHash();
         content.addAll(context.getLines());
     }

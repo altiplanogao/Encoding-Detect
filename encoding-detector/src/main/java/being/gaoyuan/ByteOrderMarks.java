@@ -1,36 +1,27 @@
 package being.gaoyuan;
 
-import org.apache.commons.io.IOUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-public class ByteOrderMarks {
+public class ByteOrderMarks extends MagicNumbers{
     public final Charset charset;
-    private final byte[] marks;
 
     private ByteOrderMarks() {
+        super();
         charset = null;
-        marks = null;
     }
 
     private ByteOrderMarks(Charset charset, byte[] marks) {
+        super(marks);
         this.charset = charset;
-        this.marks = marks;
-    }
-
-    public int markLen(){
-        return marks.length;
     }
 
     public static final ByteOrderMarks UTF_8 = new ByteOrderMarks(
@@ -75,38 +66,22 @@ public class ByteOrderMarks {
         int minByteLen = Integer.MAX_VALUE;
         int maxByteLen = Integer.MIN_VALUE;
         for (ByteOrderMarks bom : predefinedBoms) {
-            int len = bom.marks.length;
+            int len = bom.markLen();
             maxByteLen = maxByteLen < len ? len : maxByteLen;
             minByteLen = minByteLen > len ? len : minByteLen;
         }
         CHECK_MAX_LEN = maxByteLen;
     }
 
-    private boolean likely(byte[] leadingBytes) {
-        for (int i = 0; i < marks.length; i++) {
-            if (marks[i] != leadingBytes[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public static Optional<ByteOrderMarks> resolve(File file) {
         try (FileInputStream stream = new FileInputStream(file)) {
             byte[] leadingBytes = new byte[CHECK_MAX_LEN];
-            int read = 0;
-            do {
-                int stepRead = stream.read(leadingBytes, read, leadingBytes.length - read);
-                if (stepRead < 0) {
-                    break;
-                }
-                read += stepRead;
-            } while (read < leadingBytes.length);
+            int read = MagicNumbers.read(stream, leadingBytes);
 
             List<ByteOrderMarks> likely = new ArrayList<>();
             for (ByteOrderMarks bom : PREDEFINED_BOMS) {
-                if (bom.marks.length <= read) {
-                    if (bom.likely(leadingBytes)) {
+                if (bom.markLen() <= read) {
+                    if (bom.match(leadingBytes)) {
                         likely.add(bom);
                     }
                 }
@@ -117,27 +92,10 @@ public class ByteOrderMarks {
             } else if (likely.size() == 1) {
                 return Optional.ofNullable(likely.get(0));
             } else {
-                return likely.stream().max(new BomComparator());
+                return likely.stream().max(new MagicNumbersComparator());
             }
         } catch (IOException e) {
             return Optional.empty();
-        }
-    }
-
-    private static class BomComparator implements Comparator<ByteOrderMarks> {
-        @Override
-        public int compare(ByteOrderMarks a, ByteOrderMarks b) {
-            int diff = Integer.compare(a.marks.length, b.marks.length);
-            if (diff != 0) {
-                int len = a.marks.length;
-                for (int i = 0; i < len; i++) {
-                    diff = Byte.compare(a.marks[i], b.marks[i]);
-                    if (diff != 0) {
-                        break;
-                    }
-                }
-            }
-            return diff;
         }
     }
 }
