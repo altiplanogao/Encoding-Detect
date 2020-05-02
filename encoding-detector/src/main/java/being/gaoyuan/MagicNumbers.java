@@ -32,24 +32,27 @@ public class MagicNumbers {
         return marks.length;
     }
 
-    public boolean match(byte[] leadingBytes, int skips) {
+    public boolean match(byte[] leadingBytes, final int skips) {
         if ((leadingBytes.length - skips) < marks.length) {
             return false;
         }
         for (int i = 0; i < marks.length; i++) {
-            if (marks[i] != leadingBytes[i - skips]) {
+            if (marks[i] != leadingBytes[i + skips]) {
                 return false;
             }
         }
         return true;
     }
 
-
     public boolean match(byte[] leadingBytes) {
         return match(leadingBytes, 0);
     }
 
-    public boolean match(File file, int skips){
+    protected boolean match(File file){
+        return match(file, 0);
+    }
+
+    protected boolean match(File file, int skips){
         try(FileInputStream stream = new FileInputStream(file)) {
             byte[] buffer = new byte[marks.length + skips];
             int read = read(stream, buffer);

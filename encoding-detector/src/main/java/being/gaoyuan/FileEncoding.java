@@ -38,7 +38,7 @@ public class FileEncoding {
                 bestGuess = charsets.get(0);
                 break;
             default:
-                bestGuess = theBest(charsets);
+                bestGuess = theBest(this.charsets);
         }
     }
 

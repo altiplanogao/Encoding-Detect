@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,12 +56,12 @@ class MagicDefine {
                     } catch (Exception e){
                         return new MagicDefine(false, offset, "");
                     }
-                    hexPart = input.substring(input.indexOf("]") + 1);
+                    hexPart = input.substring(input.indexOf("]") + 1).trim();
                     try{
                         Hex.decodeHex(hexPart.replaceAll(" ", ""));
-                        return new MagicDefine(true, offset, input);
+                        return new MagicDefine(true, offset, hexPart);
                     } catch (DecoderException e) {
-                        return new MagicDefine(false, offset, input);
+                        return new MagicDefine(false, offset, hexPart);
                     }
                 }
             }else {
@@ -129,22 +128,42 @@ class ResultLine{
     final MagicDefine magicDefine;
     final String ext;
     final String description;
+    final String expectFieldName;
 
-    public ResultLine(MagicDefine magicDefine, String ext, String description) {
+    public ResultLine(MagicDefine magicDefine, String ext, String description, Set<String> nameRegistry) {
         this.magicDefine = magicDefine;
         ext = ext.replaceAll("\\.","_")
 //                .replaceAll("\\d", "_")
                 .trim();
         Matcher matcher = digitLeading.matcher(ext);
         if (matcher.find()) {
-            ext = "F_" + ext;
+            ext = "_" + ext;
         }
         this.ext = ext;
-        if(description.contains("\"")) {
+
+        int offset = 0;
+        String expectVarName = this.ext.toUpperCase();
+        while (nameRegistry.contains(expectVarName)) {
+            expectVarName = this.ext + "_" + (offset++);
+        }
+        nameRegistry.add(expectVarName);
+        this.expectFieldName = expectVarName;
+
+         if(description.contains("\"")) {
             this.description = description.replaceAll("\"", "\\\\\"");
         }else {
             this.description = description;
         }
+    }
+
+    public void appendTo(StringBuilder sb){
+        sb.append("public static final FileType " + expectFieldName + " = ")
+                .append("new FileType(")
+                .append(magicDefine.offset == 0 ? "" : "" + magicDefine.offset + ", ")
+                .append("\"" + magicDefine.magicNumbers + "\", ")
+                .append("\"" + this.ext + "\", ")
+                .append("\"" + this.description + "\");")
+                .append("\n");
     }
 }
 public class FileTypeGeneratorAsTest {
@@ -157,45 +176,40 @@ public class FileTypeGeneratorAsTest {
             String html = IOUtils.toString(stream, StandardCharsets.UTF_8);
             Document doc = Jsoup.parse(html);
             Elements trs = doc.select("tbody>tr");
-            MagicDefine magicDefine = null;
-            Set<String> varNameUsed = new HashSet<>();
-            for (Element tr : trs) {
-                LineData lineData = new LineData(tr);
-                switch (lineData.command) {
-                    case NONE:
-                        break;
-                    case UPDATE_MAGIC_DEFINE:
-                        magicDefine = lineData.magicDefine;
-                        break;
-                    case CLEAR_MAGIC_DEFINE:
-                        magicDefine = null;
-                    case GENERATE_ENTRY:
-                        if (magicDefine == null) {
+            List<ResultLine> toGenerate = new ArrayList<>();
+            {
+                MagicDefine magicDefine = null;
+                final Set<String> nameRegistry = new HashSet<>();
+                for (Element tr : trs) {
+                    LineData lineData = new LineData(tr);
+                    switch (lineData.command) {
+                        case NONE:
                             break;
-                        }
-                        for (String ext : lineData.exts) {
-                            ResultLine line = new ResultLine(magicDefine, ext, lineData.description);
-                            int offset = 0;
-                            String expectVarName = line.ext;
-                            if (ext.contains(" ")) {
-                                continue;
+                        case UPDATE_MAGIC_DEFINE:
+                            magicDefine = lineData.magicDefine;
+                            break;
+                        case CLEAR_MAGIC_DEFINE:
+                            magicDefine = null;
+                        case GENERATE_ENTRY:
+                            if (magicDefine == null) {
+                                break;
                             }
-                            while (varNameUsed.contains(expectVarName)) {
-                                expectVarName = line.ext + "_" + (offset++);
+                            for (String ext : lineData.exts) {
+                                if (ext.contains(" ")) {
+                                    continue;
+                                }
+                                ResultLine line = new ResultLine(magicDefine, ext, lineData.description, nameRegistry);
+                                toGenerate.add(line);
                             }
-                            varNameUsed.add(expectVarName);
-                            sb.append("public static final FileType " + expectVarName + " = ")
-                                    .append("new FileType(")
-                                    .append(magicDefine.offset == 0 ? "" : "" + magicDefine.offset + ", ")
-                                    .append("\"" + magicDefine.magicNumbers + "\", ")
-                                    .append("\"" + ext + "\", ")
-                                    .append("\"" + line.description + "\");")
-                                    .append("\n");
-                        }
-                        break;
-                    default:
-                        throw new IllegalStateException();
+                            break;
+                        default:
+                            throw new IllegalStateException();
+                    }
                 }
+            }
+            toGenerate.sort((o1, o2) -> StringUtils.compare(o1.expectFieldName, o2.expectFieldName));
+            for (ResultLine line : toGenerate) {
+                line.appendTo(sb);
             }
         }
         sb.toString();

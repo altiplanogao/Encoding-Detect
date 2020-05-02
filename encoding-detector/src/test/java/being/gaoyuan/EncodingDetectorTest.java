@@ -1,6 +1,7 @@
 package being.gaoyuan;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
@@ -43,8 +44,35 @@ public class EncodingDetectorTest {
                 return FileVisitResult.CONTINUE;
             }
 
+            private final Set<String> KNOWN_EXTS = new HashSet<String>(){
+                {
+                    add("class");
+                    add("java");
+                    add("js");
+                    add("json");
+                    add("png");
+                    add("py");
+                    add("ttf");
+                    add("otf");
+                    add("properties");
+                    add("txt");
+                    add("yaml");
+                    add("yml");
+                    add("xml");
+                }
+            };
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                String ext = FilenameUtils.getExtension(file.toFile().getName()).toLowerCase();
+                if(KNOWN_EXTS.contains(ext)){
+                    return FileVisitResult.CONTINUE;
+                }
+                Optional<FileType> fileType = FileTypes.checkType(file.toFile());
+                if(fileType.isPresent()){
+                    log(file, "-------" + fileType.get());
+                    return FileVisitResult.CONTINUE;
+                }
+
                 FileEncoding fileEncoding = detector.detect(file);
                 if(!fileEncoding.charsets.isEmpty()){
                     Map<String, String> charset2Sha1 = new HashMap<>();

@@ -1,6 +1,8 @@
 package being.gaoyuan;
 //https://www.garykessler.net/library/file_sigs.html
 
+import java.io.File;
+
 public class FileType extends MagicNumbers {
     private final int magicNumberOffset;
     public final String extension;
@@ -19,5 +21,13 @@ public class FileType extends MagicNumbers {
         this.description = description;
     }
 
-//    public static final FileType
+    @Override
+    protected boolean match(File file) {
+        return super.match(file, magicNumberOffset);
+    }
+
+    @Override
+    public String toString() {
+        return "*." + extension + ": " + description;
+    }
 }

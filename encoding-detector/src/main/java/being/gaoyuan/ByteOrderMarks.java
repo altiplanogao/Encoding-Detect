@@ -48,7 +48,7 @@ public class ByteOrderMarks extends MagicNumbers{
 
         Field[] fields = ByteOrderMarks.class.getFields();
         for (Field field : fields) {
-            if (!ByteOrderMarks.class.equals(field.getDeclaringClass())) {
+            if (!ByteOrderMarks.class.equals(field.getType())) {
                 continue;
             }
             int modifiers = field.getModifiers();
