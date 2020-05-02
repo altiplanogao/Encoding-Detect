@@ -1,4 +1,4 @@
-package being.gaoyuan;
+package being.gaoyuan.encodingdetect;
 
 public enum LineType {
     NA,

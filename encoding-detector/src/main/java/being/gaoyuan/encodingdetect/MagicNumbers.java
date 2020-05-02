@@ -1,4 +1,4 @@
-package being.gaoyuan;
+package being.gaoyuan.encodingdetect;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -48,19 +48,19 @@ public class MagicNumbers {
         return match(leadingBytes, 0);
     }
 
-    protected boolean match(File file){
+    protected boolean match(File file) {
         return match(file, 0);
     }
 
-    protected boolean match(File file, int skips){
-        try(FileInputStream stream = new FileInputStream(file)) {
+    protected boolean match(File file, int skips) {
+        try (FileInputStream stream = new FileInputStream(file)) {
             byte[] buffer = new byte[marks.length + skips];
             int read = read(stream, buffer);
-            if(read != buffer.length){
+            if (read != buffer.length) {
                 return false;
             }
             return match(buffer, skips);
-        }catch (IOException e){
+        } catch (IOException e) {
             return false;
         }
     }

@@ -1,5 +1,7 @@
-package being.gaoyuan;
+package being.gaoyuan.encodingdetect.detectors;
 
+import being.gaoyuan.encodingdetect.DetectSummary;
+import being.gaoyuan.encodingdetect.LineType;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.nio.charset.Charset;
@@ -26,7 +28,7 @@ public class DetectContext {
     private int macLines = 0;//\r
 
     private List<String> lines = new ArrayList<>();
-//    private StringBuilder raw = new StringBuilder();
+    //    private StringBuilder raw = new StringBuilder();
     private StringBuilder sb = null;
 
     private boolean committed = false;
@@ -42,7 +44,7 @@ public class DetectContext {
         if (sb == null) {
             sb = new StringBuilder();
         }
-        char ch = (char)chr;
+        char ch = (char) chr;
 //        raw.append(ch);
         switch (chr) {
             case LF:
@@ -99,7 +101,7 @@ public class DetectContext {
                 commitLine();
             }
             MessageDigest digest = DigestUtils.getSha1Digest();
-            for(String line : lines){
+            for (String line : lines) {
                 digest.update(line.getBytes(StandardCharsets.UTF_8));
             }
             contentHash = Base64.getEncoder().encodeToString(digest.digest());
@@ -127,8 +129,8 @@ public class DetectContext {
         }
     }
 
-    public int getLineCount(LineType lineType){
-        switch (lineType){
+    public int getLineCount(LineType lineType) {
+        switch (lineType) {
             case MAC:
                 return macLines;
             case WIN:
@@ -156,4 +158,21 @@ public class DetectContext {
     public int getMaxChar() {
         return maxChar;
     }
+
+
+    public DetectSummary asSummary() {
+        DetectSummary summary = new DetectSummary();
+        summary.charset = this.charset;
+        summary.lineType = this.getLineType();
+        summary.lines = this.getLineCount(summary.lineType);
+        summary.chars = this.getChars();
+        summary.maxChar = (char) this.getMaxChar();
+        boolean ok = !this.isBroken();
+        summary.ok = ok;
+        summary.brokenChar = ok ? null : this.getBrokenChar();
+        summary.contentHash = this.getContentHash();
+        summary.content.addAll(this.getLines());
+        return summary;
+    }
+
 }

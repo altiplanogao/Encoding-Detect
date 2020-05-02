@@ -1,21 +1,20 @@
-package being.gaoyuan;
-
-import org.apache.commons.lang3.StringUtils;
+package being.gaoyuan.encodingdetect;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class FileEncoding {
+public class EncodingGuesser {
     private static final List<String> THE_BESTES = new ArrayList<String>() {
         {
-//            add("US-ASCII");
 //            add("ISO-8859-1");
             add("UTF-8");
+            add("ISO-8859-1");
             add("GBK");
             add("GB18030");
             add("Big5");
             add("UTF-16");
             add("UTF-16LE");
+            add("UTF-32");
         }
     };
     private static final List<String> BLACK_LIST = new ArrayList<String>() {
@@ -24,25 +23,7 @@ public class FileEncoding {
         }
     };
 
-    public String bestGuess;
-    public List<String> charsets;
-
-    public FileEncoding(List<String> charsets) {
-        this.charsets = new ArrayList<>(charsets);
-        this.charsets.removeAll(BLACK_LIST);
-        switch (this.charsets.size()){
-            case 0:
-                bestGuess = "";
-                break;
-            case 1:
-                bestGuess = charsets.get(0);
-                break;
-            default:
-                bestGuess = theBest(this.charsets);
-        }
-    }
-
-    private String theBest(List<String> charsets) {
+    private static String theBest(List<String> charsets) {
         for (String soFarBest : THE_BESTES) {
             if (charsets.contains(soFarBest)) {
                 return soFarBest;
@@ -51,15 +32,7 @@ public class FileEncoding {
         return charsets.get(0);
     }
 
-    public String brief() {
-        return StringUtils.isEmpty(bestGuess) ? "<binary>" : "<text>" + "." + bestGuess + ".in." + charsets.size();
-    }
-
-    public boolean isText() {
-        return !StringUtils.isEmpty(bestGuess);
-    }
-
-    public static Optional<FileEncoding> bestFit(List<DetectSummary> summaries) {
+    public static Optional<FileType> guess(List<DetectSummary> summaries) {
         List<DetectSummary> supported = new ArrayList<>();
         boolean anyLineEnd = false;
         for (DetectSummary summary : summaries) {
@@ -81,7 +54,16 @@ public class FileEncoding {
                     .add(summary);
         }
 
-        return Optional.of(new FileEncoding(filter.stream()
-                .map(summary -> summary.charset.name()).collect(Collectors.toList())));
+        List<String> potentialEncodings = filter.stream()
+                .map(summary -> summary.charset.name()).collect(Collectors.toList());
+        potentialEncodings.removeAll(BLACK_LIST);
+        switch (potentialEncodings.size()) {
+            case 0:
+                return Optional.of(new FileType(BinaryType.UNKNOWN_BINARY));
+            case 1:
+                return Optional.of(new FileType(potentialEncodings.get(0)));
+            default:
+                return Optional.of(new FileType(theBest(potentialEncodings), potentialEncodings));
+        }
     }
 }

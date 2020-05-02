@@ -1,4 +1,4 @@
-package being.gaoyuan;
+package being.gaoyuan.encodingdetect;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class ByteOrderMarks extends MagicNumbers{
+public class ByteOrderMarks extends MagicNumbers {
     public final Charset charset;
 
     private ByteOrderMarks() {
