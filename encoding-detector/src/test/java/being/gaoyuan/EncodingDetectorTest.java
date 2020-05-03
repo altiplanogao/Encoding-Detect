@@ -88,7 +88,7 @@ public class EncodingDetectorTest {
                 decimalFormat.setGroupingUsed(true);
                 decimalFormat.setGroupingSize(3);
                 log(file, "REACH." + decimalFormat.format(theFile.length()));
-                Optional<FileType> optionalFilType = detector.detect(file);
+                Optional<FileType> optionalFilType = detector.detect(theFile);
                 if (optionalFilType.isPresent()) {
                     FileType fileEncoding = optionalFilType.get();
                     double cost = 0.001 * (System.currentTimeMillis() - startTime);

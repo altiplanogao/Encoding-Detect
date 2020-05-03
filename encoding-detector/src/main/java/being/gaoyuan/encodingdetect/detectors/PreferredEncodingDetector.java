@@ -5,6 +5,7 @@ import being.gaoyuan.encodingdetect.FileType;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.Optional;
 
 public class PreferredEncodingDetector extends AbstractEncodingDetector {
@@ -16,13 +17,15 @@ public class PreferredEncodingDetector extends AbstractEncodingDetector {
     }
 
     @Override
-    public Optional<FileType> detect(File file) {
-        int decodeAttempt = 0;
+    public Optional<FileType> detect(File file, Collection<Charset> attempt) {
         for (Charset prefer : prefers) {
+            if(attempt.contains(prefer)){
+                continue;
+            }
             DetectSummary summary = tryFit(file, prefer);
-            decodeAttempt++;
+            attempt.add(prefer);
             if (summary.ok) {
-                return Optional.of(new FileType(prefer.name(), decodeAttempt));
+                return Optional.of(new FileType(prefer.name(), attempt.size()));
             }
         }
         return Optional.empty();

@@ -31,9 +31,12 @@ public class EncodingGuesser {
         return charsets.get(0);
     }
 
-    public static Optional<FileType> guess(List<DetectSummary> summaries) {
+    public static Optional<FileType> guess(List<DetectSummary> summaries, Collection<?> attempt) {
+        return guess(summaries, attempt.size());
+    }
+
+    public static Optional<FileType> guess(List<DetectSummary> summaries, int decodeAttempt) {
         List<DetectSummary> supported = new ArrayList<>();
-        int decodeAttempt = summaries.size();
         boolean anyLineEnd = false;
         for (DetectSummary summary : summaries) {
             if (summary.ok) {

@@ -16,17 +16,14 @@ public class PreferredByExtensionEncodingDetector
     private final Map<String, Set<String>> encodingCache = new WeakHashMap<>();
 
     @Override
-    public Optional<FileType> detect(File file) {
+    public Optional<FileType> detect(File file, Collection<Charset> attempt) {
         final String ext = FilenameUtils.getExtension(file.getName()).toLowerCase();
         Set<String> cachedEncodings = encodingCache.computeIfAbsent(ext, x -> new HashSet<>());
-        List<Charset> cachedCharsets = (cachedEncodings == null ? new ArrayList<String>() : cachedEncodings)
-                .stream().map(encoding -> Charset.forName(encoding)).collect(Collectors.toList());
+        List<Charset> cachedCharsets = cachedEncodings
+                .stream().map(Charset::forName).collect(Collectors.toList());
         if (!cachedCharsets.isEmpty()) {
-            List<DetectSummary> summaryList = new ArrayList<>();
-            for (Charset charset : cachedCharsets) {
-                summaryList.add(tryFit(file, charset));
-            }
-            Optional<FileType> firstTry = EncodingGuesser.guess(summaryList);
+            List<DetectSummary> summaryList = tryFitSummary(file, cachedCharsets, attempt);
+            Optional<FileType> firstTry = EncodingGuesser.guess(summaryList, attempt);
             if (firstTry.isPresent()) {
                 FileType fileType = firstTry.get();
                 if (fileType.isText()) {
@@ -39,11 +36,8 @@ public class PreferredByExtensionEncodingDetector
             Set<Charset> candidates = new HashSet<>(CHARSETS.values());
             candidates.removeAll(cachedCharsets);
 
-            List<DetectSummary> summaryList = new ArrayList<>();
-            for (Charset charset : candidates) {
-                summaryList.add(tryFit(file, charset));
-            }
-            Optional<FileType> secondTry = EncodingGuesser.guess(summaryList);
+            List<DetectSummary> summaryList = tryFitSummary(file, candidates, attempt);
+            Optional<FileType> secondTry = EncodingGuesser.guess(summaryList, attempt);
             if (secondTry.isPresent()) {
                 final FileType fileType = secondTry.get();
                 if (fileType.isBinary()) {

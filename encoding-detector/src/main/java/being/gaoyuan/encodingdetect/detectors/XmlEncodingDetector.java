@@ -7,7 +7,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,7 +23,7 @@ public class XmlEncodingDetector extends AbstractEncodingDetector {
                     "(\\w+)\\s*=\\s*(\\\"|\\\')(\\S+)(\\\"|\\\')");
 
     @Override
-    public Optional<FileType> detect(File file) {
+    public Optional<FileType> detect(File file, Collection<Charset> attempt) {
         final String line = readFirstLine(file);
         if (!StringUtils.startsWith(line, "<?xml")) {
             return Optional.empty();
@@ -35,7 +37,7 @@ public class XmlEncodingDetector extends AbstractEncodingDetector {
                 String propName = propMatcher.group(1);
                 if ("encoding".equals(propName)) {
                     String propVal = propMatcher.group(3);
-                    return Optional.of(new FileType(propVal, 1));
+                    return Optional.of(new FileType(propVal, attempt.size() + 1));
                 }
             }
         }

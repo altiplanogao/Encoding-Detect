@@ -10,9 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public abstract class AbstractEncodingDetector implements EncodingDetector {
     public static final Set<Integer> CONTROL_EXCEPTS;
@@ -49,6 +47,19 @@ public abstract class AbstractEncodingDetector implements EncodingDetector {
 
     public static void setForbids(Forbids forbids) {
         AbstractEncodingDetector.forbids = forbids;
+    }
+
+    protected static List<DetectSummary> tryFitSummary(File f,
+                                                       Collection<Charset> charsets,
+                                                       Collection<Charset> attempt) {
+        List<DetectSummary> summaryList = new ArrayList<>();
+        for (Charset charset : charsets) {
+            if (!attempt.contains(charset)) {
+                summaryList.add(tryFit(f, charset));
+                attempt.add(charset);
+            }
+        }
+        return summaryList;
     }
 
     protected static DetectSummary tryFit(File f, Charset charset) {

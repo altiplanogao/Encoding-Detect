@@ -6,23 +6,16 @@ import being.gaoyuan.encodingdetect.FileType;
 
 import java.io.File;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.SortedMap;
+import java.util.*;
 
 public class GeneralEncodingDetector extends AbstractEncodingDetector {
     protected static final SortedMap<String, Charset> CHARSETS = Charset.availableCharsets();
 
     @Override
-    public Optional<FileType> detect(File file) {
-        List<DetectSummary> summaryList = new ArrayList<>();
+    public Optional<FileType> detect(File file, Collection<Charset> attempt) {
+        List<DetectSummary> summaryList = tryFitSummary(file, CHARSETS.values(), attempt);
 
-        for (Charset charset : CHARSETS.values()) {
-            summaryList.add(tryFit(file, charset));
-        }
-
-        return EncodingGuesser.guess(summaryList);
+        return EncodingGuesser.guess(summaryList, attempt.size());
     }
 
 }

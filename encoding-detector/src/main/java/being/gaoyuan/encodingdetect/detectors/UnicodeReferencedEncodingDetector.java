@@ -2,12 +2,12 @@ package being.gaoyuan.encodingdetect.detectors;
 
 import being.gaoyuan.encodingdetect.FileType;
 import being.gaoyuan.encodingdetect.utils.ForbidsSet;
-import being.gaoyuan.encodingdetect.utils.IntRange;
 import com.ibm.icu.lang.UCharacter;
 import com.ibm.icu.text.UnicodeSet;
 
 import java.io.File;
-import java.util.Collections;
+import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -57,7 +57,7 @@ public class UnicodeReferencedEncodingDetector extends AbstractEncodingDetector 
     }
 
     @Override
-    public Optional<FileType> detect(File file) {
+    public Optional<FileType> detect(File file, Collection<Charset> attempt) {
         //do nothing, except ensure that "appendForbiddenChars(calcUnicodeForbiddenChars());" called
         return Optional.empty();
     }
