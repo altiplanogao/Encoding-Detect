@@ -17,10 +17,12 @@ public class PreferredEncodingDetector extends AbstractEncodingDetector {
 
     @Override
     public Optional<FileType> detect(File file) {
+        int decodeAttempt = 0;
         for (Charset prefer : prefers) {
             DetectSummary summary = tryFit(file, prefer);
+            decodeAttempt++;
             if (summary.ok) {
-                return Optional.of(new FileType(prefer.name()));
+                return Optional.of(new FileType(prefer.name(), decodeAttempt));
             }
         }
         return Optional.empty();

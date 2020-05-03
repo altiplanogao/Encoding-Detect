@@ -1,4 +1,4 @@
-package being.gaoyuan.encodingdetect;
+package being.gaoyuan.encodingdetect.utils;
 
 import java.io.File;
 import java.io.FileInputStream;

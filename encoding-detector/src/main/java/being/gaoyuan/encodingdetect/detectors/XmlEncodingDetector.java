@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 public class XmlEncodingDetector extends AbstractEncodingDetector {
     private static final Pattern FIRST_LINE_GENERAL_PATTERN =
             Pattern.compile(
-//                    "^\\<\\?xml((\\s+(\\w+)\\s*=\\s*\\\"(\\S+)\\\")*)\\s*\\?\\>");
                     "^\\<\\?xml((\\s+(\\w+)\\s*=\\s*((\\\"(\\S+)\\\")|(\'(\\S+)\')))*)\\s*\\?\\>");
     private static final Pattern PROPERTY_PATTERN =
             Pattern.compile(
@@ -36,13 +35,12 @@ public class XmlEncodingDetector extends AbstractEncodingDetector {
                 String propName = propMatcher.group(1);
                 if ("encoding".equals(propName)) {
                     String propVal = propMatcher.group(3);
-                    return Optional.of(new FileType(propVal));
+                    return Optional.of(new FileType(propVal, 1));
                 }
             }
         }
         return Optional.empty();
     }
-
 
     protected static String readFirstLine(File f) {
         try (FileInputStream stream = new FileInputStream(f);

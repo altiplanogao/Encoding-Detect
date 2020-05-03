@@ -2,51 +2,53 @@ package being.gaoyuan.encodingdetect.detectors;
 
 import being.gaoyuan.encodingdetect.DetectSummary;
 import being.gaoyuan.encodingdetect.EncodingDetector;
+import being.gaoyuan.encodingdetect.utils.ForbidsSet;
+import being.gaoyuan.encodingdetect.utils.IntRange;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 public abstract class AbstractEncodingDetector implements EncodingDetector {
-    private static class IntRange {
-        public final int first;
-        public final int last;
-
-        public IntRange(int first, int last) {
-            this.first = first;
-            this.last = last;
-        }
-
-        public boolean contains(int value) {
-            return first <= value && value <= last;
-        }
-    }
-
-    private static final byte END_CONTROL_BYTE_VALUE = ' ';
-    private static final String ALLOWED_CONTROL = "\t\n\r";
-    private static final String PARTIAL_FORBID_CONTROL = "\b\f";
-    private static final IntRange[] FORBID_RANGES = new IntRange[]{
-            new IntRange(0x0080, 0x009F),
-            new IntRange(0xFFFC, 0xFFFF)};
-    private static final Set<Character> FORBID_CHARS;
-
+    public static final Set<Integer> CONTROL_EXCEPTS;
     static {
-        FORBID_CHARS = new HashSet<>();
-        for (int i = 0; i < END_CONTROL_BYTE_VALUE; ++i) {
-            FORBID_CHARS.add((char) i);
+        Set<Integer> controlExcepts = new HashSet<>();
+        for (char c : "\t\n\r".toCharArray()) {
+            controlExcepts.add((int) c);
         }
-        for (char c : ALLOWED_CONTROL.toCharArray()) {
-            FORBID_CHARS.remove(c);
-        }
-        for (IntRange range : FORBID_RANGES) {
-            for (int i = range.first; i <= range.last; ++i) {
-                FORBID_CHARS.add((char) i);
+        CONTROL_EXCEPTS = Collections.unmodifiableSet(controlExcepts);
+    }
+    public static Forbids calcSimpleForbids() {
+        final IntRange[] forbidRanges = new IntRange[]{
+                new IntRange(0x000000, 0x000020),
+                new IntRange(0x000080, 0x0000A0),
+                new IntRange(0x00FFFC, 0x010000)};
+        final Set<Integer> textFileForbids = new HashSet<>();
+        for (IntRange range : forbidRanges) {
+            for (int i : range) {
+                textFileForbids.add(i);
             }
         }
+        textFileForbids.removeAll( CONTROL_EXCEPTS);
+        return new ForbidsSet(textFileForbids);
+    }
+
+    private static Forbids forbids;
+    static {
+        forbids = calcSimpleForbids();
+    }
+
+    public static Forbids getForbids() {
+        return forbids;
+    }
+
+    public static void setForbids(Forbids forbids) {
+        AbstractEncodingDetector.forbids = forbids;
     }
 
     protected static DetectSummary tryFit(File f, Charset charset) {
@@ -54,7 +56,7 @@ public abstract class AbstractEncodingDetector implements EncodingDetector {
     }
 
     protected static DetectSummary tryFit(File f, Charset charset, int skip) {
-        DetectContext context = new DetectContext(charset, FORBID_CHARS);
+        CharsetDetectContext context = new CharsetDetectContext(charset, forbids, 0x10FFFF);
         try (FileInputStream stream = new FileInputStream(f);
              InputStreamReader streamReader = new InputStreamReader(stream, charset)) {
             if (skip > 0) {
@@ -68,18 +70,17 @@ public abstract class AbstractEncodingDetector implements EncodingDetector {
                     if (ch < 0) {
                         break;
                     }
-                    context.push(ch);
+                    context.handle(ch);
                     if (context.isBroken()) {
                         break;
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             context.setBroken(true);
         } finally {
             context.commit();
         }
         return context.asSummary();
     }
-
 }

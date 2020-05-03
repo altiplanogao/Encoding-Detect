@@ -1,15 +1,18 @@
 package being.gaoyuan;
 
+import being.gaoyuan.encodingdetect.BinaryTypeCollection;
 import being.gaoyuan.encodingdetect.FileType;
 import being.gaoyuan.encodingdetect.detectors.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.text.DecimalFormat;
 import java.util.*;
 
 public class EncodingDetectorTest {
@@ -32,15 +35,19 @@ public class EncodingDetectorTest {
     public void test() throws IOException {
         Path root = Paths.get(System.getProperty("user.home"));
         EncodingDetectorAgent detector = new EncodingDetectorAgent();
-        detector.addDetector(new BinaryFileDetector())
+        detector.addDetector(new BinaryFileDetector(
+                new BinaryTypeCollection().loadPreDefines()))
                 .addDetector(new XmlEncodingDetector())
                 .addDetector(new PreferredEncodingDetector(
                         StandardCharsets.UTF_8,
                         StandardCharsets.ISO_8859_1))
-                .addDetector(new WithBomEncodingDetector());
+                .addDetector(new BomEncodingDetector())
+                .addDetector(new UnicodeReferencedEncodingDetector())
+                .addDetector(new PreferredByExtensionEncodingDetector());
         Files.walkFileTree(root, new FileVisitor<Path>() {
+            private final long walkStart = System.currentTimeMillis();
             private void log(Path file, String info) {
-                System.out.println("[" + info + "] " + StringUtils.repeat(" ", depth) + file);
+                System.out.println(StringUtils.repeat(" ", depth) + "[" + info + "] " + file);
             }
 
             private int depth = 0;
@@ -57,40 +64,37 @@ public class EncodingDetectorTest {
 
             private final Set<String> KNOWN_EXTS = new HashSet<String>() {
                 {
-//                    add("afm");
-//                    add("class");
-//                    add("compositefont");
-//                    add("kt");
-//                    add("java");
-//                    add("js");
-//                    add("json");
-//                    add("png");
-//                    add("py");
-//                    add("ttf");
-//                    add("otf");
-//                    add("md");
-//                    add("properties");
-//                    add("txt");
-//                    add("yaml");
-//                    add("yml");
-//                    add("xml");
-//                    add("lst");
-//                    add("html");//?
-//                    add("log");
-//                    add("jar");
+                    addAll(Arrays.asList(new String[]{
+                            "afm", "compositefont", "class",
+                            "java", "js", "jpg", "json", "jar",
+                            "kt",
+                            "lst", "log", "md",
+                            "otf",
+                            "png", "py", "pyc", "properties",
+                            "ttf", "txt",
+                            "yaml", "yml"}));
                 }
             };
 
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                File theFile = file.toFile();
+                long startTime = System.currentTimeMillis();
                 String ext = FilenameUtils.getExtension(file.toFile().getName()).toLowerCase();
                 if (KNOWN_EXTS.contains(ext)) {
                     return FileVisitResult.CONTINUE;
                 }
+                DecimalFormat decimalFormat = new DecimalFormat("#.##");
+                decimalFormat.setGroupingUsed(true);
+                decimalFormat.setGroupingSize(3);
+                log(file, "REACH." + decimalFormat.format(theFile.length()));
                 Optional<FileType> optionalFilType = detector.detect(file);
                 if (optionalFilType.isPresent()) {
                     FileType fileEncoding = optionalFilType.get();
-                    log(file, "-------" + fileEncoding);
+                    double cost = 0.001 * (System.currentTimeMillis() - startTime);
+                    double totalCost = 0.001 * (System.currentTimeMillis() - walkStart);
+                    log(file, "" + fileEncoding +
+                            String.format(" %.2fs/%.2fs", cost, totalCost));
                     return FileVisitResult.CONTINUE;
                 }
                 log(file, "UNKNOWN");

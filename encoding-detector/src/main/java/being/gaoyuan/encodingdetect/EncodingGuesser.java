@@ -4,9 +4,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class EncodingGuesser {
-    private static final List<String> THE_BESTES = new ArrayList<String>() {
+    private static final List<String> THE_PREFERRED = new ArrayList<String>() {
         {
-//            add("ISO-8859-1");
             add("UTF-8");
             add("ISO-8859-1");
             add("GBK");
@@ -24,7 +23,7 @@ public class EncodingGuesser {
     };
 
     private static String theBest(List<String> charsets) {
-        for (String soFarBest : THE_BESTES) {
+        for (String soFarBest : THE_PREFERRED) {
             if (charsets.contains(soFarBest)) {
                 return soFarBest;
             }
@@ -34,6 +33,7 @@ public class EncodingGuesser {
 
     public static Optional<FileType> guess(List<DetectSummary> summaries) {
         List<DetectSummary> supported = new ArrayList<>();
+        int decodeAttempt = summaries.size();
         boolean anyLineEnd = false;
         for (DetectSummary summary : summaries) {
             if (summary.ok) {
@@ -59,11 +59,11 @@ public class EncodingGuesser {
         potentialEncodings.removeAll(BLACK_LIST);
         switch (potentialEncodings.size()) {
             case 0:
-                return Optional.of(new FileType(BinaryType.UNKNOWN_BINARY));
+                return Optional.of(new FileType(BinaryType.UNKNOWN_BINARY, decodeAttempt));
             case 1:
-                return Optional.of(new FileType(potentialEncodings.get(0)));
+                return Optional.of(new FileType(potentialEncodings.get(0), decodeAttempt));
             default:
-                return Optional.of(new FileType(theBest(potentialEncodings), potentialEncodings));
+                return Optional.of(new FileType(theBest(potentialEncodings), potentialEncodings, decodeAttempt));
         }
     }
 }

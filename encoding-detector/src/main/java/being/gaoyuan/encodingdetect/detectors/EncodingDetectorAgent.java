@@ -11,21 +11,21 @@ import java.util.function.Predicate;
 
 public class EncodingDetectorAgent implements EncodingDetector {
     private static class SpecifiedDetector implements EncodingDetector {
-        final Predicate<File> precheck;
+        final Predicate<File> preCheck;
         final EncodingDetector inner;
 
         public SpecifiedDetector(EncodingDetector inner) {
             this(null, inner);
         }
 
-        public SpecifiedDetector(Predicate<File> precheck, EncodingDetector inner) {
-            this.precheck = precheck;
+        public SpecifiedDetector(Predicate<File> preCheck, EncodingDetector inner) {
+            this.preCheck = preCheck;
             this.inner = inner;
         }
 
         @Override
         public Optional<FileType> detect(File file) {
-            if (precheck == null || precheck.test(file)) {
+            if (preCheck == null || preCheck.test(file)) {
                 return inner.detect(file);
             } else {
                 return Optional.empty();
@@ -55,8 +55,8 @@ public class EncodingDetectorAgent implements EncodingDetector {
         return this;
     }
 
-    public EncodingDetectorAgent addDetector(EncodingDetector detector, Predicate<File> precheck) {
-        specifiedDetectorList.add(new SpecifiedDetector(precheck, detector));
+    public EncodingDetectorAgent addDetector(EncodingDetector detector, Predicate<File> preCheck) {
+        specifiedDetectorList.add(new SpecifiedDetector(preCheck, detector));
         return this;
     }
 }

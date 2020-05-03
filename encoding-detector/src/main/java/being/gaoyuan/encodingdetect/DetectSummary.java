@@ -1,5 +1,7 @@
 package being.gaoyuan.encodingdetect;
 
+import being.gaoyuan.encodingdetect.utils.LineType;
+
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;

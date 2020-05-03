@@ -12,15 +12,11 @@ import java.util.Optional;
 import java.util.SortedMap;
 
 public class GeneralEncodingDetector extends AbstractEncodingDetector {
-    private static final SortedMap<String, Charset> CHARSETS = Charset.availableCharsets();
+    protected static final SortedMap<String, Charset> CHARSETS = Charset.availableCharsets();
 
     @Override
     public Optional<FileType> detect(File file) {
         List<DetectSummary> summaryList = new ArrayList<>();
-
-//        ByteOrderMarks.resolve(file).ifPresent(
-//                bom -> summaryList.add(
-//                        tryFit(file, bom.charset, bom.markLen())));
 
         for (Charset charset : CHARSETS.values()) {
             summaryList.add(tryFit(file, charset));

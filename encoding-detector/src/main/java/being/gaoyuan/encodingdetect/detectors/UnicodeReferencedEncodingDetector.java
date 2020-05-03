@@ -1,0 +1,64 @@
+package being.gaoyuan.encodingdetect.detectors;
+
+import being.gaoyuan.encodingdetect.FileType;
+import being.gaoyuan.encodingdetect.utils.ForbidsSet;
+import being.gaoyuan.encodingdetect.utils.IntRange;
+import com.ibm.icu.lang.UCharacter;
+import com.ibm.icu.text.UnicodeSet;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+public class UnicodeReferencedEncodingDetector extends AbstractEncodingDetector {
+    private static class UnicodeForbids implements Forbids{
+        private final UnicodeSet unicodeSet;
+
+        public UnicodeForbids(Set<Integer> values) {
+            unicodeSet = new UnicodeSet();
+            for (int i : values) {
+                unicodeSet.add(i);
+            }
+            unicodeSet.freeze();
+        }
+
+        @Override
+        public boolean contains(int value) {
+            return unicodeSet.contains(value);
+        }
+    }
+
+    public static Forbids calcUnicodeForbids() {
+        final Set<Integer> textFileForbids = new HashSet<>();
+        for (int cp = UCharacter.MIN_VALUE; cp <= UCharacter.MAX_VALUE; cp++) {
+            boolean forbid = false;
+            if (UCharacter.isISOControl(cp)) {
+                forbid = true;
+            }
+            if (!UCharacter.isLegal(cp)) {
+                forbid = true;
+            }
+
+            if (forbid) {
+                textFileForbids.add(cp);
+            }
+        }
+        textFileForbids.removeAll(CONTROL_EXCEPTS);
+        return new ForbidsSet(textFileForbids);
+    }
+
+    static {
+        setForbids(calcUnicodeForbids());
+    }
+
+    public UnicodeReferencedEncodingDetector() {
+    }
+
+    @Override
+    public Optional<FileType> detect(File file) {
+        //do nothing, except ensure that "appendForbiddenChars(calcUnicodeForbiddenChars());" called
+        return Optional.empty();
+    }
+}
