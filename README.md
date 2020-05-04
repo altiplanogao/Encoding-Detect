@@ -25,5 +25,4 @@ Try to detect and guess the most possible encoding of a text-file.
     
 ## Note
 
-Reuse the EncodingDetectorAgent if possible,
- it may run faster when history detection result exists. 
+Reuse the EncodingDetectorAgent instance, it may run faster when history detection result exists. 
