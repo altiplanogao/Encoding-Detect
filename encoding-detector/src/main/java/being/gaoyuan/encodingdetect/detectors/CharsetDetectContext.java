@@ -1,13 +1,12 @@
 package being.gaoyuan.encodingdetect.detectors;
 
-import being.gaoyuan.encodingdetect.DetectSummary;
 import being.gaoyuan.encodingdetect.utils.LineType;
-import org.apache.commons.codec.digest.DigestUtils;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.security.MessageDigest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 
 
 public class CharsetDetectContext extends DetectContext {

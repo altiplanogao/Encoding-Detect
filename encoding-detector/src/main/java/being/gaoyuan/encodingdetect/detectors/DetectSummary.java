@@ -1,4 +1,4 @@
-package being.gaoyuan.encodingdetect;
+package being.gaoyuan.encodingdetect.detectors;
 
 import being.gaoyuan.encodingdetect.utils.LineType;
 

@@ -12,6 +12,8 @@ import java.util.Optional;
 public class BinaryTypeCollection {
 
     private static class PreDefines {
+        //https://www.garykessler.net/library/file_sigs.html
+
         public static final BinaryType AAC = new BinaryType("AAC", "FF F1", "MPEG-4 Advanced Audio Coding (AAC) Low Complexity (LC) audio file");
         public static final BinaryType AAC_0 = new BinaryType("AAC", "FF F9", "MPEG-2 Advanced Audio Coding (AAC) Low Complexity (LC) audio file");
         public static final BinaryType ABA = new BinaryType("ABA", "00 01 42 41", "Palm Address Book Archive file");

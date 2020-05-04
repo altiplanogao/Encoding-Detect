@@ -1,12 +1,12 @@
 package being.gaoyuan.encodingdetect.detectors;
 
-import being.gaoyuan.encodingdetect.DetectSummary;
-import being.gaoyuan.encodingdetect.EncodingGuesser;
 import being.gaoyuan.encodingdetect.FileType;
 
 import java.io.File;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 public class GeneralEncodingDetector extends AbstractEncodingDetector {
 

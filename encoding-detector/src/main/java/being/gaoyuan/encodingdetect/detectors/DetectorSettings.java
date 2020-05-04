@@ -1,7 +1,7 @@
 package being.gaoyuan.encodingdetect.detectors;
 
-import being.gaoyuan.encodingdetect.utils.ForbidsSet;
 import being.gaoyuan.encodingdetect.utils.IntRange;
+import com.ibm.icu.lang.UCharacter;
 
 import java.nio.charset.Charset;
 import java.util.*;
@@ -20,6 +20,7 @@ public class DetectorSettings {
         charsets = new ArrayList<>(
                 Charset.availableCharsets().values());
         forbids = calcSimpleForbids();
+        DetectorSettings.setForbids(calcUnicodeForbids());
     }
 
     public static Collection<Charset> getCharsets() {
@@ -32,7 +33,7 @@ public class DetectorSettings {
 
     public static Forbids calcSimpleForbids() {
         final Set<Integer> textFileForbids = calcSimpleForbidsSet();
-        return new ForbidsSet(textFileForbids);
+        return new CollectionForbids(textFileForbids);
     }
 
     public static Set<Integer> calcSimpleForbidsSet() {
@@ -48,6 +49,30 @@ public class DetectorSettings {
         }
         textFileForbids.removeAll(CONTROL_EXCEPTS);
         return textFileForbids;
+    }
+
+    public static Forbids calcUnicodeForbids() {
+        final Set<Integer> textFileForbids = new HashSet<>();
+        for (int cp = UCharacter.MIN_VALUE; cp <= UCharacter.MAX_VALUE; cp++) {
+            boolean forbid = false;
+            if (UCharacter.isISOControl(cp)) {
+                forbid = true;
+            }
+            if (!UCharacter.isLegal(cp)) {
+                forbid = true;
+            }
+
+//            if(UCharacter.isSupplementary(cp)){
+//                System.out.println(String.format("0x%02X", cp) + ":\"" + (char) cp + "\"");
+//            }
+
+            if (forbid) {
+                textFileForbids.add(cp);
+            }
+        }
+        textFileForbids.addAll(DetectorSettings.calcSimpleForbidsSet());
+        textFileForbids.removeAll(DetectorSettings.CONTROL_EXCEPTS);
+        return new CollectionForbids(textFileForbids);
     }
 
     public static Forbids getForbids() {

@@ -1,6 +1,5 @@
 package being.gaoyuan.encodingdetect.detectors;
 
-import being.gaoyuan.encodingdetect.DetectSummary;
 import being.gaoyuan.encodingdetect.FileType;
 
 import java.io.File;

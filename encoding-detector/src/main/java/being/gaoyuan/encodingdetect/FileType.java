@@ -88,7 +88,7 @@ public class FileType {
     @Override
     public String toString() {
         if (binary != null) {
-            return "<binary>." + binary + "d: " + decodeAttempt;
+            return "<binary>." + binary + " d:" + decodeAttempt;
         } else {
             return "<text>." + encoding + " " +
                     potentialEncodings.size() + "/" + decodeAttempt;

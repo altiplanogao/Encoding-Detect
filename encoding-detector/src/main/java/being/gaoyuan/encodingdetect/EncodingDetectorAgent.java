@@ -1,10 +1,10 @@
-package being.gaoyuan.encodingdetect.detectors;
+package being.gaoyuan.encodingdetect;
 
-import being.gaoyuan.encodingdetect.EncodingDetector;
-import being.gaoyuan.encodingdetect.FileType;
+import being.gaoyuan.encodingdetect.detectors.*;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -38,6 +38,20 @@ public class EncodingDetectorAgent implements EncodingDetector {
     public EncodingDetectorAgent() {
     }
 
+    public static EncodingDetectorAgent createDefault(){
+        EncodingDetectorAgent agent = new EncodingDetectorAgent();
+        agent.add(new ZeroSizeEncodingDetector())
+                .add(new BinaryFileDetector(
+                        new BinaryTypeCollection().loadPreDefines()))
+                .add(new XmlEncodingDetector())
+                .add(new PreferredEncodingDetector(
+                        StandardCharsets.UTF_8,
+                        StandardCharsets.ISO_8859_1))
+                .add(new BomEncodingDetector())
+                .add(new PreferredByExtensionEncodingDetector());
+        return agent;
+    }
+
     public Optional<FileType> detect(File file) {
         return detect(file, new HashSet<>());
     }
@@ -53,12 +67,12 @@ public class EncodingDetectorAgent implements EncodingDetector {
         return generalEncodingDetector.detect(file, attempt);
     }
 
-    public EncodingDetectorAgent addDetector(EncodingDetector detector) {
+    public EncodingDetectorAgent add(EncodingDetector detector) {
         specifiedDetectorList.add(new SpecifiedDetector(detector));
         return this;
     }
 
-    public EncodingDetectorAgent addDetector(EncodingDetector detector, Predicate<File> preCheck) {
+    public EncodingDetectorAgent add(EncodingDetector detector, Predicate<File> preCheck) {
         specifiedDetectorList.add(new SpecifiedDetector(preCheck, detector));
         return this;
     }

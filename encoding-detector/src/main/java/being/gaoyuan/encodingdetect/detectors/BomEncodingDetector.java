@@ -1,8 +1,7 @@
 package being.gaoyuan.encodingdetect.detectors;
 
-import being.gaoyuan.encodingdetect.utils.ByteOrderMarks;
-import being.gaoyuan.encodingdetect.DetectSummary;
 import being.gaoyuan.encodingdetect.FileType;
+import being.gaoyuan.encodingdetect.utils.ByteOrderMarks;
 
 import java.io.File;
 import java.nio.charset.Charset;

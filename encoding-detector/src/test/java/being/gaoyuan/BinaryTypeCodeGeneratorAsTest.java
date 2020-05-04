@@ -8,6 +8,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -161,6 +162,15 @@ class ResultLine {
     }
 }
 
+/**
+ * Actually, this class is not designed for test.
+ * It's just an entry to generate entries of class PreDefines in the {@link
+ * being.gaoyuan.encodingdetect.BinaryTypeCollection} using resource "File Signatures.html"
+ *
+ * Before running, remember to update file "resources/File Signatures.html" by downloading https://www.garykessler.net/library/file_sigs.html to
+ *
+ */
+@Disabled
 public class BinaryTypeCodeGeneratorAsTest {
 
     @Test

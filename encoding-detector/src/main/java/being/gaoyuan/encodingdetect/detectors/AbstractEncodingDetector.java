@@ -1,6 +1,5 @@
 package being.gaoyuan.encodingdetect.detectors;
 
-import being.gaoyuan.encodingdetect.DetectSummary;
 import being.gaoyuan.encodingdetect.EncodingDetector;
 
 import java.io.BufferedReader;
@@ -31,7 +30,7 @@ public abstract class AbstractEncodingDetector implements EncodingDetector {
         return tryFit(f, charset, 0);
     }
 
-    protected static DetectSummary tryFit(File f, Charset charset, int skip) {
+    protected static DetectSummary tryFit(final File f, Charset charset, int skip) {
         CharsetDetectContext context = new CharsetDetectContext(charset, DetectorSettings.getForbids(),
                 Character.MIN_CODE_POINT, Character.MAX_CODE_POINT);
         try (FileInputStream stream = new FileInputStream(f);

@@ -1,5 +1,4 @@
 package being.gaoyuan.encodingdetect;
-//https://www.garykessler.net/library/file_sigs.html
 
 import being.gaoyuan.encodingdetect.utils.MagicNumbers;
 import org.apache.commons.lang3.StringUtils;

@@ -1,7 +1,5 @@
 package being.gaoyuan.encodingdetect.detectors;
 
-import being.gaoyuan.encodingdetect.DetectSummary;
-import being.gaoyuan.encodingdetect.EncodingGuesser;
 import being.gaoyuan.encodingdetect.FileType;
 import org.apache.commons.io.FilenameUtils;
 

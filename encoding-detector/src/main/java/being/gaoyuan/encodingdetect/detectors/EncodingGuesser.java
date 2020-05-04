@@ -1,4 +1,8 @@
-package being.gaoyuan.encodingdetect;
+package being.gaoyuan.encodingdetect.detectors;
+
+import being.gaoyuan.encodingdetect.BinaryType;
+import being.gaoyuan.encodingdetect.FileType;
+import being.gaoyuan.encodingdetect.detectors.DetectSummary;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,7 +22,7 @@ public class EncodingGuesser {
     };
     private static final List<String> BLACK_LIST = new ArrayList<String>() {
         {
-            add("x-COMPOUND_TEXT");
+//            add("x-COMPOUND_TEXT");
         }
     };
 
