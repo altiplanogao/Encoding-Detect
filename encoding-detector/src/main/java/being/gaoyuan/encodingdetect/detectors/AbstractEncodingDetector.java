@@ -2,52 +2,17 @@ package being.gaoyuan.encodingdetect.detectors;
 
 import being.gaoyuan.encodingdetect.DetectSummary;
 import being.gaoyuan.encodingdetect.EncodingDetector;
-import being.gaoyuan.encodingdetect.utils.ForbidsSet;
-import being.gaoyuan.encodingdetect.utils.IntRange;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public abstract class AbstractEncodingDetector implements EncodingDetector {
-    public static final Set<Integer> CONTROL_EXCEPTS;
-    static {
-        Set<Integer> controlExcepts = new HashSet<>();
-        for (char c : "\t\n\r".toCharArray()) {
-            controlExcepts.add((int) c);
-        }
-        CONTROL_EXCEPTS = Collections.unmodifiableSet(controlExcepts);
-    }
-    public static Forbids calcSimpleForbids() {
-        final IntRange[] forbidRanges = new IntRange[]{
-                new IntRange(0x000000, 0x000020),
-                new IntRange(0x000080, 0x0000A0),
-                new IntRange(0x00FFFC, 0x010000)};
-        final Set<Integer> textFileForbids = new HashSet<>();
-        for (IntRange range : forbidRanges) {
-            for (int i : range) {
-                textFileForbids.add(i);
-            }
-        }
-        textFileForbids.removeAll( CONTROL_EXCEPTS);
-        return new ForbidsSet(textFileForbids);
-    }
-
-    private static Forbids forbids;
-    static {
-        forbids = calcSimpleForbids();
-    }
-
-    public static Forbids getForbids() {
-        return forbids;
-    }
-
-    public static void setForbids(Forbids forbids) {
-        AbstractEncodingDetector.forbids = forbids;
-    }
 
     protected static List<DetectSummary> tryFitSummary(File f,
                                                        Collection<Charset> charsets,
@@ -67,7 +32,8 @@ public abstract class AbstractEncodingDetector implements EncodingDetector {
     }
 
     protected static DetectSummary tryFit(File f, Charset charset, int skip) {
-        CharsetDetectContext context = new CharsetDetectContext(charset, forbids, 0x10FFFF);
+        CharsetDetectContext context = new CharsetDetectContext(charset, DetectorSettings.getForbids(),
+                Character.MIN_CODE_POINT, Character.MAX_CODE_POINT);
         try (FileInputStream stream = new FileInputStream(f);
              InputStreamReader streamReader = new InputStreamReader(stream, charset)) {
             if (skip > 0) {

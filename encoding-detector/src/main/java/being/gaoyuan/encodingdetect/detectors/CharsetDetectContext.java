@@ -4,15 +4,17 @@ import being.gaoyuan.encodingdetect.DetectSummary;
 import being.gaoyuan.encodingdetect.utils.LineType;
 import org.apache.commons.codec.digest.DigestUtils;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
 
 
-public class CharsetDetectContext extends DetectContext{
+public class CharsetDetectContext extends DetectContext {
     public static final int LF = '\n';
     public static final int CR = '\r';
+    private static final int LINE_BOUND = 200;
+    private static final int MAX_LINE_ALLOWED = 100;
 
     public final Charset charset;
     private int lfs = 0;
@@ -22,24 +24,28 @@ public class CharsetDetectContext extends DetectContext{
     private int macLines = 0;//\r
 
     private List<String> lines = new ArrayList<>();
-    private StringBuilder sb = null;
+    private int extraLines = 0;
+    private BoundedCharBuffer charBuffer = null;
 
+    private final BufferedDigest digest;
     private String contentHash = "";
 
-    public CharsetDetectContext(Charset charset, Forbids forbids, int maxAllowed) {
-        super(forbids, 0, maxAllowed);
+    public CharsetDetectContext(Charset charset, Forbids forbids, int minAllowed, int maxAllowed) {
+        super(forbids, minAllowed, maxAllowed);
         this.charset = charset;
+        this.digest = new BufferedDigest();
     }
 
     @Override
     protected void preHandle() {
-        if (sb == null) {
-            sb = new StringBuilder();
+        if (charBuffer == null) {
+            charBuffer = new BoundedCharBuffer(LINE_BOUND);
         }
     }
 
     @Override
-    protected boolean doHandle(final int value){
+    protected boolean doHandle(final int value) {
+        digest.update(value);
         switch (value) {
             case LF:
                 lfs++;
@@ -58,27 +64,27 @@ public class CharsetDetectContext extends DetectContext{
                 return true;
             default:
                 char ch = (char) value;
-                sb.append(ch);
+                charBuffer.append(ch);
                 return false;
         }
     }
 
     @Override
     protected boolean doCommit() {
-        if (sb != null) {
+        if (charBuffer != null) {
             commitLine();
-        }
-        MessageDigest digest = DigestUtils.getSha1Digest();
-        for (String line : lines) {
-            digest.update(line.getBytes(StandardCharsets.UTF_8));
         }
         contentHash = Base64.getEncoder().encodeToString(digest.digest());
         return true;
     }
 
     private void commitLine() {
-        lines.add(sb.toString());
-        sb = null;
+        if (lines.size() < MAX_LINE_ALLOWED) {
+            lines.add(charBuffer.toString());
+        } else {
+            extraLines++;
+        }
+        charBuffer = null;
     }
 
     public LineType getLineType() {
@@ -132,7 +138,7 @@ public class CharsetDetectContext extends DetectContext{
         summary.maxChar = (char) this.getMax();
         boolean ok = !this.isBroken();
         summary.ok = ok;
-        summary.brokenChar = ok ? null : (char)this.getBrokenValue();
+        summary.brokenChar = ok ? null : (char) this.getBrokenValue();
         summary.contentHash = this.getContentHash();
         summary.content.addAll(this.getLines());
         return summary;

@@ -41,16 +41,21 @@ public class UnicodeReferencedEncodingDetector extends AbstractEncodingDetector 
                 forbid = true;
             }
 
+//            if(UCharacter.isSupplementary(cp)){
+//                System.out.println(String.format("0x%02X", cp) + ":\"" + (char) cp + "\"");
+//            }
+
             if (forbid) {
                 textFileForbids.add(cp);
             }
         }
-        textFileForbids.removeAll(CONTROL_EXCEPTS);
+        textFileForbids.addAll(DetectorSettings.calcSimpleForbidsSet());
+        textFileForbids.removeAll(DetectorSettings.CONTROL_EXCEPTS);
         return new ForbidsSet(textFileForbids);
     }
 
     static {
-        setForbids(calcUnicodeForbids());
+        DetectorSettings.setForbids(calcUnicodeForbids());
     }
 
     public UnicodeReferencedEncodingDetector() {

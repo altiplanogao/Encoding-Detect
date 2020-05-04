@@ -34,6 +34,8 @@ public class EncodingDetectorTest {
     @Test
     public void test() throws IOException {
         Path root = Paths.get(System.getProperty("user.home"));
+        Set<String> textExtensions = new HashSet<>();
+        Set<String> binaryExtensions = new HashSet<>();
         EncodingDetectorAgent detector = new EncodingDetectorAgent();
         detector.addDetector(new BinaryFileDetector(
                 new BinaryTypeCollection().loadPreDefines()))
@@ -49,7 +51,7 @@ public class EncodingDetectorTest {
             private void log(Path file, String info) {
                 System.out.println(StringUtils.repeat(" ", depth) + "[" + info + "] " + file);
             }
-
+            private int fileIndex = 0;
             private int depth = 0;
 
             @Override
@@ -63,21 +65,22 @@ public class EncodingDetectorTest {
             }
 
             private final Set<String> KNOWN_EXTS = new HashSet<String>() {
-                {
-                    addAll(Arrays.asList(new String[]{
-                            "afm", "compositefont", "class",
-                            "java", "js", "jpg", "json", "jar",
-                            "kt",
-                            "lst", "log", "md",
-                            "otf",
-                            "png", "py", "pyc", "properties",
-                            "ttf", "txt",
-                            "yaml", "yml"}));
-                }
+//                {
+//                    addAll(Arrays.asList(new String[]{
+//                            "afm", "compositefont", "class",
+//                            "java", "js", "jpg", "json", "jar",
+//                            "kt",
+//                            "lst", "log", "md",
+//                            "otf",
+//                            "png", "py", "pyc", "properties",
+//                            "ttf", "txt",
+//                            "yaml", "yml"}));
+//                }
             };
 
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                fileIndex++;
                 File theFile = file.toFile();
                 long startTime = System.currentTimeMillis();
                 String ext = FilenameUtils.getExtension(file.toFile().getName()).toLowerCase();
@@ -87,13 +90,15 @@ public class EncodingDetectorTest {
                 DecimalFormat decimalFormat = new DecimalFormat("#.##");
                 decimalFormat.setGroupingUsed(true);
                 decimalFormat.setGroupingSize(3);
-                log(file, "REACH." + decimalFormat.format(theFile.length()));
+                log(file, "REACH #"+fileIndex+" " + decimalFormat.format(theFile.length()));
                 Optional<FileType> optionalFilType = detector.detect(theFile);
                 if (optionalFilType.isPresent()) {
-                    FileType fileEncoding = optionalFilType.get();
+                    FileType fileType = optionalFilType.get();
+                    (fileType.isText()? textExtensions : binaryExtensions)
+                            .add(FilenameUtils.getExtension(theFile.getName()));
                     double cost = 0.001 * (System.currentTimeMillis() - startTime);
                     double totalCost = 0.001 * (System.currentTimeMillis() - walkStart);
-                    log(file, "" + fileEncoding +
+                    log(file, "" + fileType +
                             String.format(" %.2fs/%.2fs", cost, totalCost));
                     return FileVisitResult.CONTINUE;
                 }
@@ -115,5 +120,10 @@ public class EncodingDetectorTest {
                 return FileVisitResult.CONTINUE;
             }
         });
+        System.out.println("Text Extensions:");
+        System.out.println(Arrays.toString(textExtensions.toArray()));
+        System.out.println();
+        System.out.println("Binary Extensions:");
+        System.out.println(Arrays.toString(binaryExtensions.toArray()));
     }
 }

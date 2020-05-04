@@ -526,6 +526,13 @@ public class BinaryTypeCollection {
         public static final BinaryType _7Z = new BinaryType("7Z", "37 7A BC AF 27 1C", "7-Zip compressed file");
     }
 
+    private static class PreDefine2 {
+        public static final BinaryType PYC = new BinaryType("PYC", "b3 f2 0d 0a", "PYC file");
+        public static final BinaryType ELF = new BinaryType("AXF,BIN,ELF,O,PRX,PUFF,KO,SO,MOD", "7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 ", "ELF file");
+//        public static final BinaryType ABA = new BinaryType("ABA", "00 01 42 41", "Palm Address Book Archive file");
+//        public static final BinaryType ABD_QSD = new BinaryType("ABD,QSD", "51 57 20 56 65 72 2E 20", "Quicken data file");
+    }
+
     private final SetMultimap<String, BinaryType> extensionToTypesMap;
 
     public BinaryTypeCollection(){
@@ -533,18 +540,21 @@ public class BinaryTypeCollection {
     }
 
     public BinaryTypeCollection loadPreDefines(){
-        Field[] fields = PreDefines.class.getFields();
-        for (Field field : fields) {
-            if (!BinaryType.class.equals(field.getType())) {
-                continue;
-            }
-            int modifiers = field.getModifiers();
-            if (Modifier.isFinal(modifiers) && Modifier.isStatic(modifiers)) {
-                try {
-                    BinaryType value = (BinaryType) field.get(null);
-                    this.add(value);
-                } catch (IllegalAccessException e) {
-                    //ignore
+        Class[] preDefClasses = new Class[]{PreDefines.class, PreDefine2.class};
+        for (Class clz : preDefClasses) {
+            Field[] fields = clz.getFields();
+            for (Field field : fields) {
+                if (!BinaryType.class.equals(field.getType())) {
+                    continue;
+                }
+                int modifiers = field.getModifiers();
+                if (Modifier.isFinal(modifiers) && Modifier.isStatic(modifiers)) {
+                    try {
+                        BinaryType value = (BinaryType) field.get(null);
+                        this.add(value);
+                    } catch (IllegalAccessException e) {
+                        //ignore
+                    }
                 }
             }
         }

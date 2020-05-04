@@ -33,7 +33,7 @@ public class PreferredByExtensionEncodingDetector
         }
 
         {
-            Set<Charset> candidates = new HashSet<>(CHARSETS.values());
+            Set<Charset> candidates = new HashSet<>(DetectorSettings.getCharsets());
             candidates.removeAll(cachedCharsets);
 
             List<DetectSummary> summaryList = tryFitSummary(file, candidates, attempt);
