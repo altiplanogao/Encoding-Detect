@@ -13,15 +13,13 @@ Try to detect and guess the most possible encoding of a text-file.
 
     File file = ...
     EncodingDetectorAgent detector = EncodingDetectorAgent.createDefault();
-    Optional<FileType> optionalFilType = detector.detect(file);
-    if (optionalFilType.isPresent()) {
-        FileType fileType = optionalFilType.get();
+    detector.detect(file).ifPresent(fileType -> {
         // fileType.isBinary();
         // fileType.isText();
         // fileType.getBinary();
         // fileType.getEncoding();
         // fileType.getPotentialEncodings();
-    }
+    });
     
 ## Note
 
