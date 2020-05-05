@@ -69,9 +69,9 @@ public class UserHomeDetectionTest {
                 decimalFormat.setGroupingUsed(true);
                 decimalFormat.setGroupingSize(3);
                 log(file, "REACH #" + fileIndex + " " + decimalFormat.format(theFile.length()));
-                Optional<FileType> optionalFilType = detector.detect(theFile);
-                if (optionalFilType.isPresent()) {
-                    FileType fileType = optionalFilType.get();
+                Optional<FileType> optionalFileType = detector.detect(theFile);
+                if (optionalFileType.isPresent()) {
+                    FileType fileType = optionalFileType.get();
                     (fileType.isText() ? textExtensions : binaryExtensions)
                             .add(FilenameUtils.getExtension(theFile.getName()));
                     double cost = 0.001 * (System.currentTimeMillis() - startTime);
@@ -95,11 +95,17 @@ public class UserHomeDetectionTest {
                 return FileVisitResult.CONTINUE;
             }
         });
+        {
+            List<String> textExtensionList = new ArrayList<>(textExtensions);
+            textExtensionList.sort(String::compareTo);
+            List<String> binaryExtensionList = new ArrayList<>(binaryExtensions);
+            binaryExtensionList.sort(String::compareTo);
 
-        System.out.println("Text Extensions:");
-        System.out.println(Arrays.toString(textExtensions.toArray()));
-        System.out.println();
-        System.out.println("Binary Extensions:");
-        System.out.println(Arrays.toString(binaryExtensions.toArray()));
+            System.out.println("Text Extensions:");
+            System.out.println(StringUtils.join(textExtensionList));
+            System.out.println();
+            System.out.println("Binary Extensions:");
+            System.out.println(StringUtils.join(binaryExtensionList));
+        }
     }
 }

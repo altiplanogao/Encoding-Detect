@@ -2,7 +2,6 @@ package being.gaoyuan.encodingdetect.detectors;
 
 import being.gaoyuan.encodingdetect.BinaryType;
 import being.gaoyuan.encodingdetect.FileType;
-import being.gaoyuan.encodingdetect.detectors.DetectSummary;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,12 +53,7 @@ public class EncodingGuesser {
             filter = supported.stream().filter(summary -> summary.lines > 0).collect(Collectors.toList());
         }
 
-        Map<String, List<DetectSummary>> hash2SummaryMap = new HashMap<>();
-        for (DetectSummary summary : filter) {
-            hash2SummaryMap
-                    .computeIfAbsent(summary.contentHash, x -> new ArrayList<>())
-                    .add(summary);
-        }
+        Map<Summary, List<String>> hash2SummaryMap = groupBySummary(filter, new TreeMap<>());
 
         List<String> potentialEncodings = filter.stream()
                 .map(summary -> summary.charset.name()).collect(Collectors.toList());
@@ -72,5 +66,19 @@ public class EncodingGuesser {
             default:
                 return Optional.of(new FileType(theBest(potentialEncodings), potentialEncodings, decodeAttempt));
         }
+    }
+
+    private static Map<Summary, List<String>> groupBySummary(List<DetectSummary> summaryList,
+                                                             Map<Summary, List<String>> summaryToEncodings) {
+        if (summaryToEncodings == null) {
+            summaryToEncodings = new HashMap<>();
+        }
+        for (DetectSummary summary : summaryList) {
+            Summary brief = new Summary(summary);
+            summaryToEncodings
+                    .computeIfAbsent(brief, x -> new ArrayList<>())
+                    .add(summary.charset.name());
+        }
+        return summaryToEncodings;
     }
 }

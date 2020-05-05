@@ -129,17 +129,14 @@ public class CharsetDetectContext extends DetectContext {
     }
 
     public DetectSummary asSummary() {
-        DetectSummary summary = new DetectSummary();
-        summary.charset = this.charset;
-        summary.lineType = this.getLineType();
-        summary.lines = this.getLineCount(summary.lineType);
-        summary.chars = this.getHandled();
-        summary.maxChar = (char) this.getMax();
         boolean ok = !this.isBroken();
-        summary.ok = ok;
-        summary.brokenChar = ok ? null : (char) this.getBrokenValue();
-        summary.contentHash = this.getContentHash();
-        summary.content.addAll(this.getLines());
-        return summary;
+        Summary summary = new Summary(
+                this.getLineType(),
+                this.getLineCount(this.getLineType()),
+                this.getHandled(), (char) this.getMax(),
+                ok, ok ? null : (char) this.getBrokenValue(),
+                this.getContentHash(),
+                this.getLines());
+        return new DetectSummary(charset, summary);
     }
 }

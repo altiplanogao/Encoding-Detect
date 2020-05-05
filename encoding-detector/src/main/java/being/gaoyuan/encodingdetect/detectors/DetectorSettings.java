@@ -61,6 +61,9 @@ public class DetectorSettings {
             if (!UCharacter.isLegal(cp)) {
                 forbid = true;
             }
+            if (!UCharacter.isDefined(cp)) {
+                forbid = true;
+            }
 
 //            if(UCharacter.isSupplementary(cp)){
 //                System.out.println(String.format("0x%02X", cp) + ":\"" + (char) cp + "\"");
