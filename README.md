@@ -1,6 +1,6 @@
 # Encoding-Detect
 
-Detect if a file is binary or text.
+Detect whether a file is binary or text.
 Try to detect and guess the most possible encoding of a text-file.
 
 ## Main principle
